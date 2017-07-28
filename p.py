@@ -7,9 +7,10 @@ class Batch(object):
 
   num=0 # Номер партии
   def __init__(self,date,total):
-    self.date=date   # Дата прихода
-    self.total=total # Остаток 
-    self.hist=[]     # Локальный журнал сделок по партиям
+    self.date=date     # Дата прихода
+    self.total=total   # Остаток 
+    self.nominal=total # Номинал партии
+    self.hist=[]       # Локальный журнал сделок по партиям
 
   def toString(self):
     return 'Batch '+str(self.num)+' Date:'+self.date.strftime("%d %B %Y")+' Total:'+str(self.total)
@@ -40,15 +41,23 @@ class Range(object):
     batch.num=self.amount()
     if((len(self.items) > 1) and (self.items[-2].date > batch.date)):
       self.items.sort(key=lambda x: x.date)
-      index=self.items.index(batch)
-    
+      for item in self.items:       # Очищаем локальные журналы сделок по партиям
+        item.total=item.nominal
+        item.hist=[]
+        self.flag=0                 # Возвращаем самую свежую партию
+        self.key=0                  # Возарвщаем ключ сделки 
+      for deal in self.hist:
+        self.key+=1
+        self.get(deal[0],deal[1],0) # Перезаключаем сделки
+      
   def get(self,nominal,date,fl):
     if (fl):
       self.hist.append((nominal,date))
       self.key+=1
     if (self.flag > self.amount()-1):
       item=self.items[-1]
-      item.hist.append((self.key,-nominal,date))
+      item.hist.append((self.key,item.total-nominal,date))
+      item.total=0
       return 0
     item=self.items[self.flag]
     if (nominal <= item.total):
