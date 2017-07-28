@@ -38,7 +38,10 @@ class Range(object):
   def push(self,batch):
     self.items.append(batch)
     batch.num=self.amount()
-
+    if((len(self.items) > 1) and (self.items[-2].date > batch.date)):
+      self.items.sort(key=lambda x: x.date)
+      index=self.items.index(batch)
+    
   def get(self,nominal,date,fl):
     if (fl):
       self.hist.append((nominal,date))
@@ -63,7 +66,7 @@ class Range(object):
  
 a=Batch(date(2017,7,25),100)
 b=Batch(date(2017,7,26),50)
-c=Batch(date(2017,7,29),100)
+c=Batch(date(2017,7,2),100)
 dt1=date(2017,7,28)
 dt2=date(2017,7,30)
 dt3=date(2017,8,1)
