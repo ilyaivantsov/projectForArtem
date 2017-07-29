@@ -5,12 +5,12 @@ class Batch(object):
   # Объект партия
   """docstring for Batch"""
 
-  num=0 # Номер партии
+  num=0                # Номер партии
   def __init__(self,date,total):
     self.date=date     # Дата прихода
     self.total=total   # Остаток 
     self.nominal=total # Номинал партии
-    self.hist=[]       # Локальный журнал сделок по партиям
+    self.hist=[]       # Локальный журнал сделок по партии
 
   def toString(self):
     return 'Batch '+str(self.num)+' Date:'+self.date.strftime("%d %B %Y")+' Total:'+str(self.total)
@@ -23,9 +23,9 @@ class Range(object):
   def __init__(self, name):
     self.name=name
     self.items=[]
-    self.flag=0  # Позиция самой свежей партии в массиве items
     self.hist=[] # Локальный журнал сделок по номенклатуре
-    self.key=0   # Ключ сделки(номер сделки по данной номенклатуре)
+    self.flag=0  # Позиция самой свежей партии в массиве items
+    self.key=0   # Ключ сделки(текущий номер сделки по данной номенклатуре)
 
   def amount(self): # Кол-во партий 
     return len(self.items)
@@ -46,11 +46,11 @@ class Range(object):
         item.hist=[]
         self.flag=0                 # Возвращаем самую свежую партию
         self.key=0                  # Возарвщаем ключ сделки 
-      for deal in self.hist:
+      for deal in self.hist:        # Перезаключаем сделки
         self.key+=1
-        self.get(deal[0],deal[1],0) # Перезаключаем сделки
+        self.get(deal[0],deal[1],0) 
       
-  def get(self,nominal,date,fl):
+  def get(self,nominal,date,fl):    # Флаг  False - не заносим слелку в журнал, True - заносим
     if (fl):
       self.hist.append((nominal,date))
       self.key+=1
@@ -72,10 +72,10 @@ class Range(object):
       return self.get(val,date,0)
 
 
- 
-a=Batch(date(2017,7,25),100)
-b=Batch(date(2017,7,26),50)
-c=Batch(date(2017,7,2),100)
+a=Batch(date(2017,1,25),100)
+b=Batch(date(2017,1,26),50)
+c=Batch(date(2017,2,2),60)
+d=Batch(date(2017,1,24),65)
 dt1=date(2017,7,28)
 dt2=date(2017,7,30)
 dt3=date(2017,8,1)
@@ -83,4 +83,5 @@ store=Range('oil')
 store.push(a)
 store.push(b)
 store.push(c)
+
 print(store.journal())
