@@ -37,17 +37,35 @@ class Range(object):
     self.items.append(batch)
     batch.num=len(self.items)
     if((len(self.items) > 1) and (self.items[-2].date > batch.date)):
-      self.items.sort(key=lambda x: x.date)
-      for item in self.items:       # Очищаем локальные журналы сделок по партиям
-        item.total=item.nominal
-        item.hist=[]
-        self.flag=0                 # Возвращаем самую свежую партию
-        self.key=0                  # Возвравщаем ключ сделки 
-      for deal in self.hist:        # Перезаключаем сделки
-        self.key+=1
-        self.get(deal[0],deal[1],0) 
-      
-  def get(self,nominal,date,fl):    # Флаг fl: False - не заносим слелку в журнал, True - заносим
+      self.items.sort(key=lambda x: x.date)             # Сортируем по датам
+      index=self.items.index(batch)                     # Индекс вставленной партии
+      if(self.items[index+1].hist != []):               # Проверяем есть ли сделки по следующей партии
+        self.key=self.items[index+1].hist[0][0]         # Возвращаем ключ текущей сделки
+        self.flag=index
+        for i in range(0,index):
+          item=self.items[self.flag-1]
+          if (len(item.hist) == 1 and item.hist[-1][0] == self.key):
+            h=item.hist.pop()
+            item.total+=h[1]
+            self.flag-=1
+          elif ( item.hist[-1][0] == self.key ):
+            h=item.hist.pop()
+            item.total+=h[1]
+            self.flag-=1
+            break
+          else:
+            break
+
+        for item in self.items[index+1:]:          # Очищаем локальные журналы сделок по партиям
+          item.total=item.nominal
+          item.hist=[]
+        index=self.key-1
+        for deal in self.hist[index:]:             # Перезаключаем сделки
+          self.get(deal[0],deal[1],0)
+          self.key+=1 
+        self.key-=1
+
+  def get(self,nominal,date,fl):    # Флаг fl: False - не заносим слелку в локальный журнал партии, True - заносим
     if (fl):
       self.hist.append((nominal,date))
       self.key+=1
@@ -100,21 +118,19 @@ class Store(object):
     print(rng.journal())
 
 s=Store(1)
-"""for i in range(1,1000000):
-  s.approach('Oil',date.today(),i*5)
-for i in range(1,10000000):
-  s.transaction('Oil',date.today(),i)"""
 
 a=Batch(date(2017,1,25),100)
 b=Batch(date(2017,1,26),50)
 c=Batch(date(2017,2,2),60)
 d=Batch(date(2017,1,24),65)
-dt1=date(2017,7,28)
+k=Batch(date(2017,1,25),100)
+dt1=date(2017,1,28)
 dt2=date(2017,7,30)
 dt3=date(2017,8,1)
 store=Range('oil')
 store.push(a)
 store.push(b)
 store.push(c)
+store.push(d)
 
 print(store.journal())
